@@ -2,53 +2,45 @@ import hashlib
 import requests
 import datetime
 import time
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-import json
-
-from
-
-pa= [
-		"5cc2a44cdbef43457fac68d4",
-		"5cc2a4f4dbef43457fac68d5",
-		"5cc2a4f7dc144a4568af00c5",
-		"5cc2a4fadbef43457fac68d6",
-		"5cc2a4fedc144a4568af00c6",
-		"5cc2a503dbef43457fac68d7",
-		"5cc2a507dc144a4568af00c7",
-		"5cc2a50adbef43457fac68d8",
-		"5cc2a50ddc144a4568af00c8",
-		"5cc2a511dbef43457fac68d9"]
+from bson.json_util import dumps
+from SSHUB.datafile import *
+import smtplib
+import os
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 
-
-def mongodb_connects_image_validation(pa):
-    mongoClient = MongoClient("mongodb://capillary:deal20hunt@localhost:27000/instoreai_storesense")
+def mongodb_connects_image_validation(chs):
+    mongoClient = MongoClient(mongo_db)
     db = mongoClient.instoreai_storesense
-    ch ={"imagelist":pa}
-    image =db['visitor'].find_one(ch)
-    print(image)
+    ch = {checksum : chs}
+    images = db['images'].find_one(ch)
+    print(images)
+    print("CheckSum:",images["checksum"])
+    a =images['_id']
+    isid={'_id':ObjectId(a)}
+    images1 = db['images'].find_one(isid)
+    print(images1['_id'])
+    print(images1)
 
-mongodb_connects_image_validation(pa)
 
-
-def mongodb_connects():
-    mongoClient = MongoClient("mongodb://capillary:deal20hunt@localhost:27000/instoreai_storesense")
+def mongodb_connects_visitior_validation(vid,ord):
+    mongoClient = MongoClient(mongo_db)
     db = mongoClient.instoreai_storesense
-    val = "5d10af0d1feea626d5c89535"
-    a = {"visitor": ObjectId(val)}
-    orgs =db['orgs'].find_one({'orgId':orgId})
+    orgId =int(ord)
+    a = {"visitor": ObjectId(vid)}
+    orgs= db['orgs'].find_one({'orgId':orgId})
+    print("Org Name:",orgs)
+    print("Inference Type List --->",orgs['inferenceTypeList'])
     inference_type=orgs['inferenceTypeList']
-
-    if inference_type ==['DP']:
+    if inference_type ==["DP"]:
         demographies = db["demographies"].find_one(a)
         print(demographies)
         print("Status of inference--->",demographies["status"])
+
     elif  inference_type ==[ "FP", "DP", "DT", "ISS" ]:
         fashions = db["fashions"].find_one(a)
         print(fashions)
@@ -79,41 +71,17 @@ def mongodb_connects():
     elif inference_type ==[ "FP", "DP", "DT", "CR", "ISS" ]:
         fashions = db["fashions"].find_one(a)
         print(fashions)
-        #print("Status of inference--->", fashions["status"])
+        print("Status of inference--->", fashions["status"])
         demographies = db["demographies"].find_one(a)
         print(demographies)
         print("Status of inference--->", demographies["status"])
         dwelltimes = db['dwelltimes'].find_one(a)
         print(dwelltimes)
-        #print("Status of inference--->", dwelltimes["status"])
         customerrecognitions = db["customerrecognitions"].find_one(a)
         print(customerrecognitions)
-        #print("Status of inference--->", customerrecognitions["status"])
 
     else:
         print("something went wrong")
-
-mongodb_connects()
-
-def mongodb_connect():
-
-    mongoClient = MongoClient("mongodb://capillary:deal20hunt@localhost:27000/instoreai_storesense")
-    db = mongoClient.instoreai_storesense
-    bsCollection = db["bodysegmentations"]
-    visitorCollection = db["visitors"]
-    imagesCollection = db["images"]
-    vsDocs = visitorCollection.find_one({})
-
-#print("Stroe ID:", vsDocs, "inferenceTypeList---->", vsDocs['inferenceTypeList'])
-'''
-        print('imageList---->',vsDocs['imageList'],'trackId----->',vsDocs['trackId'])
-        print('tillId---->',vsDocs['tillId'],'eventType----->',vsDocs["eventType"])
-        print('storeId------>',vsDocs['storeId'],'startTime----->',vsDocs['startTime'])
-        print('_id---->',vsDocs['_id'])
-        bsDocs = bsCollection.find_one({})'''
-             #print(type(bsDocs))
-
-#mongodb_connect()
 
 def calculate_checksum(filename):
     with open(filename, 'rb') as open_file:
@@ -144,13 +112,17 @@ def image_upload_data():
         urlss = str(url) + str(end_iu)
         files = {'image': open(i, 'rb')}
         datas = {'checksum': var, 'frameTime': var2, 'score': '80'}
+        print("Checksum:",var)
+        print("\n")
         req = requests.post(urlss,data=datas,files=files,auth=auth_id)
         temp.append(req.json()['body']['imageId'])
         response = json.dumps(req.json(), indent=4)
-        print(response)
+        print("\n")
+        print("Response of code:",response)
         re = req.json()
-        id_im =re['body']
-        print(mongodb_connect())
+        print("\n")
+        dumps(mongodb_connects_image_validation(var))
+        #print(abb["checksum"])
         body=re['body']['imageId']
         status_code = re['status']['code']
         status_message = re['status']['message']
@@ -163,22 +135,35 @@ def image_upload_data():
         print("Status_Code::",status_code)
         print("Status_Message::", status_message)
         print("One Iteration Is COMPLETED")
-        print(temp)
-        print(mongodb_connects_image_validation(temp))
+    print(temp)
 
+# image_upload_data()
 # Visitor Scenarios
 def upload_visitor_data():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
-    print(type(json_string))
-    req = requests.post(ur,data=(json_string),auth=auth_id)
+    print(type(orgId))
+    req = requests.post(ur, data=(json_string), auth=auth_id)
     response = json.dumps(req.json(), indent=4)
     print(response)
     re = req.json()
-    ress = re['body']
-    print(ress)
+    status_code = re['status']['code']
+    status_message = re['status']['message']
+    assert status_code == 200, "Actual Status Code is '{}'  but expected is '{}' !!!!!!!!!!!!!!!!!!!!!!!!. ".format(
+        status_code, 500)
+    assert status_message == "created new visitor doc"
+    visitor_id_val = re['body']['visitor']['_id']
+    as_ip =str((visitor_id_val))
+    print(as_ip)
+    org_id = int(orgId)
+    print(mongodb_connects_visitior_validation("5d10af0d1feea626d5c89535",org_id))
+    print("Visitor_id", visitor_id_val)
+    print("Status_code", status_code)
+    print("status_message;", status_message)
+
+#upload_visitor_data()
 
 def create_aws_certificate():
 
@@ -219,7 +204,7 @@ def image_upload_data_score_invalid():
         var2 = time_module_mili()
         urlss = str(url) + str(end_iu)
         files = {'image': open(i, 'rb')}
-        datas = {'checksum': var, 'frameTime': with_out_mili, 'score': ''}
+        datas = {'checksum': var, 'frameTime': with_out_mili, 'score': '-90'}
         req = requests.post(urlss, data=datas, files=files, auth=auth_id)
         #temp.append(req.json()['body']['imageId'])
         response = json.dumps(req.json(), indent=4)
@@ -339,7 +324,6 @@ def upload_visitor_data_invalid_till_id():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_till_id=12345678
     json_string = {"tillId":invalid_till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur,data=(json_string),auth=auth_id)
@@ -360,7 +344,6 @@ def upload_visitor_data_invalid_event_time():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_event_time=12345678
     json_string = {"tillId":till_id,"eventTime":invalid_event_time, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur, data=(json_string), auth=auth_id)
@@ -382,7 +365,6 @@ def upload_visitor_data_invalid_track_id():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_track_id=12345678
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":invalid_track_id,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur,data=(json_string),auth=auth_id)
@@ -403,7 +385,6 @@ def upload_visitor_data_invalid_org_id():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_org_id=12345678
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":invalid_org_id,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur, data=(json_string), auth=auth_id)
@@ -424,7 +405,7 @@ def upload_visitor_data_invalid_device_id():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_device_id=12345678
+
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":invalid_device_id,"startTime": va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur, data=(json_string), auth=auth_id)
@@ -445,7 +426,7 @@ def upload_visitor_data_invalid_image_list():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_img_lst=12345678
+
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,"startTime": va,"eventType": eventType,"imageList":invalid_img_lst} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur, data=(json_string), auth=auth_id)
@@ -466,7 +447,7 @@ def upload_visitor_data_invalid_start_time():
     ur = str(url)+str( end_point_vud)
     trackId = str(with_out_mili)+'-'+str(va)
     print(trackId)
-    invalid_start_time=12345678
+
     json_string = {"tillId":till_id,"eventTime":with_out_mili, "trackId":trackId,"storeId":storeId,"orgId":orgId,"deviceId":deviceId,invalid_start_time: va,"eventType": eventType,"imageList":temp} # ['5df2196440f1dd488ebf9707','5df21f4e40f1dd488ebf993b','5df21fed40f1dd488ebf9984','5df2203140f1dd488ebf99a5','5df22069ce2d4648bbf8129d']
     print(type(json_string))
     req = requests.post(ur, data=(json_string), auth=auth_id)
@@ -495,7 +476,7 @@ def upload_visitor_data_event_time_is_null():
     re = req.json()
     status_code = re['status']['code']
     status_message = re['status']['message']
-    assert status_code == 500, "Actual Status Code is '{}'  but expected is '{}' !!!!!!!!!!!!!!!!!!!!!!!!. ".format(
+    assert status_code == 500, "Actual Status Code is '{}'  but expected is '{}' since Event Time is Null !!!!!!!!!!!!!!!!!!!!!!!!. ".format(
         status_code, 500)
     assert status_message =="Cannot read property 'length' of undefined"
 
@@ -541,6 +522,49 @@ def upload_visitor_data_storeId_is_null():
     print("status_message;", status_message)
 
 
+def send_test_report():
+    dir_path = "/home/amit.saxena@capdomain.com/StoreSenseAutomation/Tests"
+    files = ["/home/amit.saxena@capdomain.com/StoreSenseAutomation/Tests/report.html","/home/amit.saxena@capdomain.com/StoreSenseAutomation/Tests/log.html","/home/amit.saxena@capdomain.com/StoreSenseAutomation/Tests/output.xml"]
+    msg = MIMEMultipart()
+    fromaddr="amit.saxena@capilaarytech.com"
+    receivers="subrat.panda@capillarytech.com","divya.dias@capillarytech.com","saurav.behera@capillarytech.com","arun.vijay@capillarytech.com"
+    msg['To'] = "amitsaxena9225@gmail.com"
+    #ccaddrs = "subrat.panda@capillarytech.com","divya.dias@capillarytech.com","saurav.behera@capillarytech.com","arun.vijay@capillarytech.com"
+    msg['Subject'] = "SSHUB_Sanity_Test_Report_Result_Nightly"
+    msg['From'] = fromaddr
+    msg['To'] = ", ".join(receivers)
+    #msg['CC'] = ", ".join(ccaddrs)
+
+    body = '''
+            <h1>Test Report for Nightly Cluster</h1>              
+            <p><b>Hi All,</b></p>
+            <p>SSHUB Sanity is passed.</p>
+            <p>Please find the attached files for more Details</p>
+            <p>Thanks,</p>
+            <p>Amit Saxena</p>
+           '''
+
+    msg.attach(MIMEText(body, 'html'))  # add message body (text or html)
+
+    for f in files:  # add files to the message
+        file_path = os.path.join(dir_path, f)
+        attachment = MIMEApplication(open(file_path, "rb").read(), _subtype="txt")
+        attachment.add_header('Content-Disposition','attachment', filename=f)
+        msg.attach(attachment)
+
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    # start TLS for security
+    s.starttls()
+    # Authentication
+    s.login("amitsaxena9225@gmail.com", "capillary@123")
+    # Converts the Multipart msg into a string
+    text = msg.as_string()
+    # sending the mail
+    s.sendmail(msg['From'], msg['To'], msg.as_string())
+    print ('done!')
+    s.close()
+
+send_test_report()
 
 
 

@@ -5,7 +5,8 @@ Library  String
 Library  JSONLibrary
 Library  OperatingSystem
 Resource  ./nightly.robot
-Library  functions.py
+Library  CommonFunc.py
+
 
 *** Keywords ***
 
@@ -59,7 +60,6 @@ IMAGES
 
 upload_visitor
     ${data_for_visi}=       upload_visitor_data
-    log to console
 
 create aws cert
     ${cac} =   create_aws_certificate
@@ -124,8 +124,8 @@ eventime_null
     log file  ${resp_body}
 
 
-mondb
-     mongodb_connect
+send_email
+    send_test_report
 
 
 
