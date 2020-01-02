@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generated="20200102 10:17:52.695" generator="Robot 3.1.2 (Python 3.5.2 on linux)" rpa="false">
+<suite name="Test1" source="/home/amit.saxena@capdomain.com/StoreSenseAutomation/Tests/test1.robot" id="s1">
+<test name="set_config_triger" id="s1-t1">
+<kw name="set_con" library="keywrd">
+<kw name="Set Config" library="CommonFunc">
+<assign>
+<var>${set_congof_tr}</var>
+</assign>
+<msg level="INFO" timestamp="20200102 10:18:01.138">Request URL: https://nightly.capillary.in/instoreai/storesense/storesense-hub/mqtt/50015469/config?tillId=50013159&amp;storeId=50013056&amp;orgId=794&amp;deviceType=ce
+{
+    "status": {
+        "isError": false,
+        "message": "",
+        "code": 202
+    },
+    "body": {
+        "status": "InProgress",
+        "jobId": "d3fa405c-0fc0-4a40-8b9e-5eb2dd44b58d"
+    }
+}
+Code of response 202
+Message of response InProgress
+Body of response: {'status': 'InProgress', 'jobId': 'd3fa405c-0fc0-4a40-8b9e-5eb2dd44b58d'}
+JOB ID: d3fa405c-0fc0-4a40-8b9e-5eb2dd44b58d
+Status of response InProgress</msg>
+<msg level="INFO" timestamp="20200102 10:18:01.139">${set_congof_tr} = None</msg>
+<status status="PASS" starttime="20200102 10:17:59.978" endtime="20200102 10:18:01.140"></status>
+</kw>
+<kw name="Log To Console" library="BuiltIn">
+<doc>Logs the given message to the console.</doc>
+<arguments>
+<arg>${set_congof_tr}</arg>
+</arguments>
+<status status="PASS" starttime="20200102 10:18:01.141" endtime="20200102 10:18:01.143"></status>
+</kw>
+<status status="PASS" starttime="20200102 10:17:59.978" endtime="20200102 10:18:01.144"></status>
+</kw>
+<doc>Set Config Trigger</doc>
+<tags>
+<tag>MQTT</tag>
+</tags>
+<status status="PASS" starttime="20200102 10:17:59.977" endtime="20200102 10:18:01.146" critical="yes"></status>
+</test>
+<status status="PASS" starttime="20200102 10:17:52.696" endtime="20200102 10:18:01.150"></status>
+</suite>
+<statistics>
+<total>
+<stat fail="0" pass="1">Critical Tests</stat>
+<stat fail="0" pass="1">All Tests</stat>
+</total>
+<tag>
+<stat pass="1" fail="0">MQTT</stat>
+</tag>
+<suite>
+<stat fail="0" pass="1" id="s1" name="Test1">Test1</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
